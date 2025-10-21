@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}About - PDF Data Extraction Tool{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="display-4 text-center mb-5">About This Tool</h1>
+            
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-3">
+                        <i class="bi bi-bullseye"></i> Purpose
+                    </h3>
+                    <p class="lead">
+                        This tool automates the extraction of critical data from medical reports, specifically designed for pathologists working with clinical trial data.
+                    </p>
+                    <p>
+                        Pathologists receive reports from various laboratories containing technical information on patients participating in clinical trials. These reports are often inconsistent in structure, text-heavy, and require expert knowledge to interpret.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-success mb-3">
+                        <i class="bi bi-graph-up-arrow"></i> Benefits
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Time Savings:</strong> Eliminates manual data extraction</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Consistency:</strong> Standardized data format across reports</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Accuracy:</strong> Reduces human error in data transcription</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Efficiency:</strong> Frees pathologists for high-value work</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Searchable:</strong> Converts image-based reports to text</li>
+                                <li class="mb-2"><i class="bi bi-check-circle text-success"></i> <strong>Scalable:</strong> Process multiple reports quickly</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-info mb-3">
+                        <i class="bi bi-gear-wide-connected"></i> Key Features
+                    </h3>
+                    
+                    <h5 class="mt-4">Genetic Report Extraction</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li>Disease name and panel information</li>
+                                <li>Methodology and nucleic acid details</li>
+                                <li>Library prep and platform data</li>
+                                <li>Tumour fraction and LOH status</li>
+                                <li>Microsatellite instability status</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li>Gene mutations and co-occurring results</li>
+                                <li>Clinical significance and pathogenicity</li>
+                                <li>Variant types and frequencies</li>
+                                <li>Patient demographics</li>
+                                <li>Assay performance characteristics</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4">IHC Report Extraction</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li>Disease name and panel information</li>
+                                <li>Tumour type and biopsy location</li>
+                                <li>IHC test names (FolR1, PDL1)</li>
+                                <li>Clone information</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="small">
+                                <li>Expression scores and percentages</li>
+                                <li>Cut-off criteria for interpretation</li>
+                                <li>Final positive/negative interpretation</li>
+                                <li>Patient demographics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-warning mb-3">
+                        <i class="bi bi-cpu"></i> Special Logic Implementation
+                    </h3>
+                    <div class="alert alert-info">
+                        <h6><strong>FOLR1 Expression Logic:</strong></h6>
+                        <p class="mb-2">
+                            The tool implements specific clinical logic for FOLR1 expression evaluation:
+                        </p>
+                        <ul class="mb-0">
+                            <li><strong>≥75% viable tumor cells:</strong> Marked as <span class="badge bg-success">positive</span></li>
+                            <li><strong>&lt;75% viable tumor cells:</strong> Marked as <span class="badge bg-danger">negative</span></li>
+                        </ul>
+                    </div>
+                    <p class="small text-muted">
+                        This follows the clinical cut-off criteria: "FOLR1 expression clinical cut-off is equal to or greater than 75% viable tumor cells with membrane staining at moderate and/or strong intensity levels."
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h3 class="text-secondary mb-3">
+                        <i class="bi bi-file-earmark-excel"></i> Output Format
+                    </h3>
+                    <p>
+                        The tool generates Excel files with multiple sheets:
+                    </p>
+                    <ul>
+                        <li><strong>Genetic_Report:</strong> All genetic report data fields</li>
+                        <li><strong>IHC_Report:</strong> All IHC report data fields</li>
+                        <li><strong>Combined_Report:</strong> Both report types in one sheet</li>
+                    </ul>
+                    <p class="small text-muted">
+                        All missing or unidentifiable data fields are marked as "N/A" for transparency and consistency.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

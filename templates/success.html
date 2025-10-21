@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Success - PDF Data Extraction Tool{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h1 class="display-5 text-success mb-3">Processing Complete!</h1>
+                    <p class="lead mb-4">
+                        Your PDF file <strong>"{{ original_name }}"</strong> has been successfully processed.
+                    </p>
+
+                    <div class="alert alert-info mb-4">
+                        <h6><i class="bi bi-info-circle"></i> What was extracted:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="bi bi-check2 text-success"></i> Genetic Report Data</li>
+                                    <li><i class="bi bi-check2 text-success"></i> IHC Report Data</li>
+                                    <li><i class="bi bi-check2 text-success"></i> Patient Demographics</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="bi bi-check2 text-success"></i> Gene Mutations</li>
+                                    <li><i class="bi bi-check2 text-success"></i> Clinical Significance</li>
+                                    <li><i class="bi bi-check2 text-success"></i> FOLR1 Expression Logic</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Download Excel File
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> Process Another File
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-earmark-excel text-success" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Excel Format</h6>
+                            <p class="small text-muted">Data organized in separate sheets for easy analysis</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-table text-info" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Structured Data</h6>
+                            <p class="small text-muted">All extracted fields properly labeled and formatted</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-shield-check text-warning" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">Quality Assured</h6>
+                            <p class="small text-muted">Missing data marked as "N/A" for transparency</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-4">
+                <h6><i class="bi bi-exclamation-triangle"></i> Next Steps:</h6>
+                <ol class="mb-0">
+                    <li>Download your Excel file using the button above</li>
+                    <li>Review the extracted data for accuracy</li>
+                    <li>Check the separate sheets for Genetic and IHC reports</li>
+                    <li>Verify FOLR1 expression calculations if applicable</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

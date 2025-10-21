@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Help - PDF Data Extraction Tool{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="display-4 text-center mb-5">Help & Usage Guide</h1>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="text-primary mb-3">
+                                <i class="bi bi-list-ol"></i> How to Use
+                            </h3>
+                            <ol>
+                                <li class="mb-3">
+                                    <strong>Upload PDF File</strong>
+                                    <p class="text-muted">Click "Choose File" or drag and drop your PDF report onto the upload area. Only PDF files are accepted (max 50MB).</p>
+                                </li>
+                                <li class="mb-3">
+                                    <strong>Process the File</strong>
+                                    <p class="text-muted">Click "Process PDF File" and wait for the extraction to complete. This may take a few moments depending on file size.</p>
+                                </li>
+                                <li class="mb-3">
+                                    <strong>Download Results</strong>
+                                    <p class="text-muted">Once processing is complete, download your Excel file containing all extracted data organized in separate sheets.</p>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="text-success mb-3">
+                                <i class="bi bi-file-text"></i> Supported Report Types
+                            </h3>
+                            
+                            <h5 class="text-info">Genetic Reports</h5>
+                            <p>The tool extracts comprehensive genetic testing data including:</p>
+                            <ul class="small">
+                                <li>Disease classification and panel information</li>
+                                <li>Testing methodology and technical details</li>
+                                <li>Gene mutations and variant information</li>
+                                <li>Clinical significance and pathogenicity</li>
+                                <li>Patient demographics and report metadata</li>
+                            </ul>
+
+                            <h5 class="text-info mt-4">IHC (Immunohistochemistry) Reports</h5>
+                            <p>Specialized extraction for IHC testing data including:</p>
+                            <ul class="small">
+                                <li>Tumor type and biopsy location</li>
+                                <li>IHC test results (FolR1, PDL1, etc.)</li>
+                                <li>Expression scores and cut-off criteria</li>
+                                <li>Final interpretation with clinical logic</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="text-warning mb-3">
+                                <i class="bi bi-exclamation-triangle"></i> Important Notes
+                            </h3>
+                            <div class="alert alert-warning">
+                                <ul class="mb-0">
+                                    <li><strong>PDF Quality:</strong> Clear, text-based PDFs work best. Scanned images may have limited accuracy.</li>
+                                    <li><strong>Report Structure:</strong> The tool is optimized for specific report formats. Variations may affect extraction accuracy.</li>
+                                    <li><strong>Data Validation:</strong> Always review extracted data for accuracy before use in clinical decisions.</li>
+                                    <li><strong>Missing Data:</strong> Fields not found in the PDF are marked as "N/A".</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h5 class="text-primary">
+                                <i class="bi bi-question-circle"></i> Quick Tips
+                            </h5>
+                            <ul class="small">
+                                <li>Ensure PDFs are not password protected</li>
+                                <li>Text-based PDFs work better than scanned images</li>
+                                <li>Check all sheets in the Excel output</li>
+                                <li>Verify FOLR1 calculations manually if critical</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h5 class="text-success">
+                                <i class="bi bi-file-earmark-excel"></i> Excel Output
+                            </h5>
+                            <p class="small">Your results will include:</p>
+                            <ul class="small">
+                                <li><strong>Genetic_Report:</strong> All genetic data</li>
+                                <li><strong>IHC_Report:</strong> All IHC data</li>
+                                <li><strong>Combined_Report:</strong> Both types together</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h5 class="text-info">
+                                <i class="bi bi-shield-check"></i> Data Privacy
+                            </h5>
+                            <p class="small">
+                                Uploaded files are processed locally and can be deleted after processing. 
+                                No data is stored permanently or shared with third parties.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="text-secondary">
+                                <i class="bi bi-cpu-fill"></i> Technical Specs
+                            </h5>
+                            <ul class="small">
+                                <li><strong>Max file size:</strong> 50MB</li>
+                                <li><strong>Supported format:</strong> PDF only</li>
+                                <li><strong>Output format:</strong> Excel (.xlsx)</li>
+                                <li><strong>Processing time:</strong> 30 seconds - 2 minutes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-body p-4">
+                    <h3 class="text-danger mb-3">
+                        <i class="bi bi-bug"></i> Troubleshooting
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Common Issues:</h6>
+                            <ul class="small">
+                                <li><strong>File won't upload:</strong> Check file size (&lt;50MB) and format (PDF only)</li>
+                                <li><strong>Processing fails:</strong> PDF may be corrupted or password protected</li>
+                                <li><strong>Missing data:</strong> Information may not be in expected format or location</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Solutions:</h6>
+                            <ul class="small">
+                                <li>Try removing password protection from PDF</li>
+                                <li>Ensure PDF contains searchable text (not just images)</li>
+                                <li>Check different pages of the report for missing information</li>
+                                <li>Manually verify extracted data accuracy</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">
+                    <i class="bi bi-file-earmark-medical text-primary"></i>
+                    PDF Medical Report Extractor
+                </h1>
+                <p class="lead text-muted">
+                    Automatically extract data from Genetic and IHC reports and export to Excel
+                </p>
+            </div>
+
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <form id="uploadForm" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="bi bi-cloud-upload text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 mb-3">Drop your PDF file here or click to browse</h4>
+                            <p class="text-muted">Supports PDF files up to 50MB</p>
+                            <input type="file" name="file" id="fileInput" accept=".pdf" style="display: none;" required>
+                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-folder2-open"></i> Choose File
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4" id="fileInfo" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                <strong>Selected file:</strong> <span id="fileName"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-gear-fill"></i> Process PDF File
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4" id="processingIndicator" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <p class="mt-2">Processing your PDF file... This may take a few moments.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">What This Tool Extracts</h2>
+        </div>
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-dna text-success"></i> Genetic Report Data
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check2"></i> Disease name, Panel, Methodology</li>
+                        <li><i class="bi bi-check2"></i> Nucleic acid, Library prep, Platform</li>
+                        <li><i class="bi bi-check2"></i> Tumour fraction, LOH status</li>
+                        <li><i class="bi bi-check2"></i> Microsatellite Instability Status</li>
+                        <li><i class="bi bi-check2"></i> Gene mutations and alterations</li>
+                        <li><i class="bi bi-check2"></i> Clinical significance and pathogenicity</li>
+                        <li><i class="bi bi-check2"></i> Patient demographics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-diagram-3 text-info"></i> IHC Report Data
+                    </h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check2"></i> Disease name, Panel, Tumour type</li>
+                        <li><i class="bi bi-check2"></i> Biopsy location</li>
+                        <li><i class="bi bi-check2"></i> IHC test names (FolR1, PDL1)</li>
+                        <li><i class="bi bi-check2"></i> Clone information</li>
+                        <li><i class="bi bi-check2"></i> Expression scores and cut-offs</li>
+                        <li><i class="bi bi-check2"></i> FOLR1 logic: ≥75% = positive</li>
+                        <li><i class="bi bi-check2"></i> Final interpretation results</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h6><i class="bi bi-info-circle"></i> Important Notes:</h6>
+                <ul class="mb-0">
+                    <li>This tool is designed for medical research and clinical trial data processing</li>
+                    <li>All fields not found in the PDF will be marked as "N/A" in the Excel output</li>
+                    <li>The tool implements specific FOLR1 expression logic (≥75% = positive, <75% = negative)</li>
+                    <li>Results are provided in separate sheets for Genetic and IHC reports</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const processingIndicator = document.getElementById('processingIndicator');
+
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelection(files[0]);
+        }
+    });
+
+    // Handle click on upload area
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // Handle file input change
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            handleFileSelection(this.files[0]);
+        }
+    });
+
+    // Handle form submission
+    uploadForm.addEventListener('submit', function(e) {
+        if (fileInput.files.length > 0) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-gear-fill"></i> Processing...';
+            processingIndicator.style.display = 'block';
+            uploadArea.style.display = 'none';
+        }
+    });
+
+    function handleFileSelection(file) {
+        if (file.type === 'application/pdf') {
+            fileName.textContent = file.name;
+            fileInfo.style.display = 'block';
+            submitBtn.disabled = false;
+        } else {
+            alert('Please select a PDF file.');
+            fileInput.value = '';
+            fileInfo.style.display = 'none';
+            submitBtn.disabled = true;
+        }
+    }
+});
+</script>
+{% endblock %}
