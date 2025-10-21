@@ -84,6 +84,22 @@ outputs/*
 !uploads/.gitkeep
 !outputs/.gitkeep
 
+# Poppler binaries and folders
+poppler.zip
+poppler/
+poppler-21.11.0/
+poppler-21.11.0/**
+
+# Sample extracted data
+sample_extracted_data.xlsx
+
+# Python virtual environment (expanded)
+venv/Lib/site-packages/*
+venv/Include/
+venv/Lib/
+venv/Scripts/
+venv/pyvenv.cfg
+
 # OS
 .DS_Store
 Thumbs.db

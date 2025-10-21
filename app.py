@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash, jsonify, session
 import os
 import uuid
 from werkzeug.utils import secure_filename
 from pdf_extractor import PDFDataExtractor
 import logging
 from datetime import datetime
+import threading
+import time
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
@@ -17,6 +19,24 @@ ALLOWED_EXTENSIONS = {'pdf'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+
+# Progress tracking storage
+progress_storage = {}
+progress_lock = threading.Lock()
+
+def update_progress(task_id, progress, message):
+    """Update progress for a task"""
+    with progress_lock:
+        progress_storage[task_id] = {
+            'progress': progress,
+            'message': message,
+            'timestamp': time.time()
+        }
+
+def get_progress(task_id):
+    """Get current progress for a task"""
+    with progress_lock:
+        return progress_storage.get(task_id, {'progress': 0, 'message': 'Starting...'})
 
 # Ensure upload and output directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -58,6 +78,7 @@ def upload_file():
         
         # Generate unique filename to avoid conflicts
         unique_id = str(uuid.uuid4())
+        task_id = str(uuid.uuid4())
         original_filename = secure_filename(file.filename)
         filename = f"{unique_id}_{original_filename}"
         
@@ -67,30 +88,95 @@ def upload_file():
         
         logger.info(f"File uploaded successfully: {filename}")
         
-        # Process the PDF file
-        extractor = PDFDataExtractor()
+        # Store task info in session
+        session['task_id'] = task_id
+        session['filename'] = original_filename
+        session['unique_id'] = unique_id
         
-        # Generate output filename
-        output_filename = f"extracted_data_{unique_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
+        # Start background processing
+        def process_file():
+            try:
+                update_progress(task_id, 10, "Initializing extraction...")
+                extractor = PDFDataExtractor()
+                
+                # Generate output filename
+                output_filename = f"extracted_data_{unique_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+                output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
+                
+                update_progress(task_id, 20, "Reading PDF file...")
+                
+                # Create progress callback function
+                def progress_update(progress, message):
+                    update_progress(task_id, progress, message)
+                
+                # Extract data and create Excel file with progress updates
+                update_progress(task_id, 40, "Extracting data from PDF...")
+                
+                # First extract the data
+                extracted_data = extractor.extract_data_from_pdf(upload_path)
+                
+                update_progress(task_id, 80, "Creating Excel file...")
+                result_path = extractor.create_excel_from_data(extracted_data, output_path)
+                
+                update_progress(task_id, 90, "Finalizing Excel file...")
+                
+                logger.info(f"Data extraction completed: {output_filename}")
+                
+                # Clean up uploaded file
+                os.remove(upload_path)
+                
+                update_progress(task_id, 100, "Processing complete!")
+                
+                # Store results
+                with progress_lock:
+                    progress_storage[task_id]['output_filename'] = output_filename
+                    progress_storage[task_id]['completed'] = True
+                    
+            except Exception as e:
+                logger.error(f"Error processing file: {str(e)}")
+                update_progress(task_id, -1, f"Error: {str(e)}")
         
-        # Extract data and create Excel file
-        result_path = extractor.extract_to_excel(upload_path, output_path)
+        # Start processing in background thread
+        thread = threading.Thread(target=process_file)
+        thread.daemon = True
+        thread.start()
         
-        logger.info(f"Data extraction completed: {output_filename}")
-        
-        # Clean up uploaded file (optional)
-        # os.remove(upload_path)
-        
-        flash('File processed successfully! Your Excel file is ready for download.')
-        return render_template('success.html', 
-                             filename=output_filename,
-                             original_name=original_filename)
+        return redirect(url_for('processing'))
         
     except Exception as e:
-        logger.error(f"Error processing file: {str(e)}")
-        flash(f'Error processing file: {str(e)}')
+        logger.error(f"Error uploading file: {str(e)}")
+        flash(f'Error uploading file: {str(e)}')
         return redirect(url_for('index'))
+
+@app.route('/processing')
+def processing():
+    """Processing page with progress bar"""
+    task_id = session.get('task_id')
+    filename = session.get('filename', 'Unknown')
+    if not task_id:
+        flash('No processing task found')
+        return redirect(url_for('index'))
+    return render_template('processing.html', filename=filename)
+
+@app.route('/progress')
+def get_progress_status():
+    """API endpoint to get processing progress"""
+    task_id = session.get('task_id')
+    if not task_id:
+        return jsonify({'error': 'No task found'}), 400
+    
+    progress_data = get_progress(task_id)
+    
+    # Check if completed
+    if progress_data.get('completed'):
+        return jsonify({
+            'progress': 100,
+            'message': 'Processing complete!',
+            'completed': True,
+            'filename': progress_data.get('output_filename')
+        })
+    
+    return jsonify(progress_data)
 
 @app.route('/download/<filename>')
 def download_file(filename):

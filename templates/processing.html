@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Processing - Medical PDF Extractor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog fa-spin me-2"></i>
+                        Processing Your PDF
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>File: <span class="text-primary">{{ filename }}</span></h5>
+                        <p class="text-muted">Please wait while we extract data from your medical report...</p>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-4">
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                                 role="progressbar" 
+                                 id="progress-bar"
+                                 style="width: 0%">
+                                0%
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <small id="progress-message" class="text-muted">Initializing...</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Processing Steps -->
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <div class="processing-step" id="step-1">
+                                <i class="fas fa-upload fa-2x text-success"></i>
+                                <p class="mt-2 small">Upload</p>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="processing-step" id="step-2">
+                                <i class="fas fa-file-pdf fa-2x text-muted"></i>
+                                <p class="mt-2 small">Reading PDF</p>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="processing-step" id="step-3">
+                                <i class="fas fa-search fa-2x text-muted"></i>
+                                <p class="mt-2 small">Extracting Data</p>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="processing-step" id="step-4">
+                                <i class="fas fa-file-excel fa-2x text-muted"></i>
+                                <p class="mt-2 small">Creating Excel</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Animation -->
+                    <div class="text-center mt-4" id="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Completion Section (hidden initially) -->
+                    <div class="text-center mt-4 d-none" id="completion-section">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                            <h5>Processing Complete!</h5>
+                            <p>Your medical data has been successfully extracted.</p>
+                            <a href="#" id="download-link" class="btn btn-success btn-lg">
+                                <i class="fas fa-download me-2"></i>Download Excel File
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Section (hidden initially) -->
+                    <div class="text-center mt-4 d-none" id="error-section">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+                            <h5>Processing Error</h5>
+                            <p id="error-message">An error occurred while processing your file.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Try Again
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let progressInterval;
+
+function updateProgress() {
+    fetch('/progress')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            
+            const progress = data.progress;
+            const message = data.message || 'Processing...';
+            
+            // Update progress bar
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = Math.max(0, progress) + '%';
+            progressBar.textContent = Math.max(0, progress) + '%';
+            
+            // Update message
+            document.getElementById('progress-message').textContent = message;
+            
+            // Update step indicators
+            updateStepIndicators(progress);
+            
+            // Check if completed
+            if (data.completed && progress === 100) {
+                clearInterval(progressInterval);
+                showCompletion(data.filename);
+            } else if (progress < 0) {
+                clearInterval(progressInterval);
+                showError(message);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching progress:', error);
+            clearInterval(progressInterval);
+            showError('Failed to get processing status');
+        });
+}
+
+function updateStepIndicators(progress) {
+    const steps = [
+        { id: 'step-1', threshold: 0 },
+        { id: 'step-2', threshold: 20 },
+        { id: 'step-3', threshold: 40 },
+        { id: 'step-4', threshold: 90 }
+    ];
+    
+    steps.forEach(step => {
+        const element = document.getElementById(step.id);
+        const icon = element.querySelector('i');
+        
+        if (progress >= step.threshold) {
+            icon.className = icon.className.replace('text-muted', 'text-success');
+        }
+    });
+}
+
+function showCompletion(filename) {
+    document.getElementById('loading-spinner').classList.add('d-none');
+    document.getElementById('completion-section').classList.remove('d-none');
+    document.getElementById('download-link').href = '/download/' + filename;
+}
+
+function showError(message) {
+    document.getElementById('loading-spinner').classList.add('d-none');
+    document.getElementById('error-section').classList.remove('d-none');
+    document.getElementById('error-message').textContent = message;
+}
+
+// Start progress monitoring when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateProgress(); // Initial call
+    progressInterval = setInterval(updateProgress, 1000); // Update every second
+});
+</script>
+{% endblock %}
