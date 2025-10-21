@@ -112,8 +112,8 @@ def upload_file():
                 # Extract data and create Excel file with progress updates
                 update_progress(task_id, 40, "Extracting data from PDF...")
                 
-                # First extract the data
-                extracted_data = extractor.extract_data_from_pdf(upload_path)
+                # First extract the data with progress callback
+                extracted_data = extractor.extract_data_from_pdf(upload_path, progress_update)
                 
                 update_progress(task_id, 80, "Creating Excel file...")
                 result_path = extractor.create_excel_from_data(extracted_data, output_path)
