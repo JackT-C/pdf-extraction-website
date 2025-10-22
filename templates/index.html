@@ -139,35 +139,54 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadArea.classList.remove('dragover');
         
         const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFileSelection(files[0]);
+        if (files && files.length > 0) {
+            const file = files[0];
+            // Set the file to the input element using DataTransfer
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            handleFileSelection(file);
         }
     });
 
-    // Handle click on upload area
-    uploadArea.addEventListener('click', function() {
-        fileInput.click();
+    // Handle click on upload area (but not on button)
+    uploadArea.addEventListener('click', function(e) {
+        // Don't trigger if clicking the button itself
+        if (!e.target.closest('button')) {
+            fileInput.click();
+        }
     });
 
     // Handle file input change
-    fileInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            handleFileSelection(this.files[0]);
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files.length > 0) {
+            const file = this.files[0];
+            handleFileSelection(file);
+            // Manually set the files to ensure they're attached to the input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
         }
     });
 
     // Handle form submission
     uploadForm.addEventListener('submit', function(e) {
-        if (fileInput.files.length > 0) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="bi bi-gear-fill"></i> Processing...';
-            processingIndicator.style.display = 'block';
-            uploadArea.style.display = 'none';
+        // Check if file is actually selected
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a PDF file before processing.');
+            return false;
         }
+        
+        // Disable button and show processing indicator
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-gear-fill"></i> Processing...';
+        processingIndicator.style.display = 'block';
+        uploadArea.style.display = 'none';
     });
 
     function handleFileSelection(file) {
-        if (file.type === 'application/pdf') {
+        if (file && file.type === 'application/pdf') {
             fileName.textContent = file.name;
             fileInfo.style.display = 'block';
             submitBtn.disabled = false;
