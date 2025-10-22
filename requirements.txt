@@ -9,4 +9,5 @@ Pillow>=9.0.0
 pdf2image>=1.16.0
 opencv-python-headless>=4.8.0
 gunicorn>=21.2.0
-python-bidi==0.4.2
+python-bidi>=0.4.2
+arabic-reshaper>=3.0.0
