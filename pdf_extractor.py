@@ -2053,6 +2053,8 @@ class PDFDataExtractor:
         """Extract a specific field value from text with enhanced pattern matching"""
         for field_name in field_names:
             # Multiple pattern variations for better matching
+            # Pre-compute field_name with flexible spacing to avoid backslash in f-string
+            field_flexible = field_name.replace(" ", r"\s*")
             patterns = [
                 # Standard colon patterns
                 fr'{field_name}\s*:\s*([^\n\r]+)',
@@ -2060,7 +2062,7 @@ class PDFDataExtractor:
                 # Space-separated patterns
                 fr'{field_name}\s+([^\n\r]+)',
                 # Flexible spacing patterns
-                fr'{field_name.replace(" ", "\\s*")}\s*:?\s*([^\n\r]+)',
+                fr'{field_flexible}\s*:?\s*([^\n\r]+)',
                 # Table-like patterns
                 fr'{field_name}\s*\|\s*([^\n\r|]+)',
                 fr'{field_name}\s*-\s*([^\n\r-]+)',
