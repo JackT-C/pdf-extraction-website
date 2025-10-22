@@ -91,12 +91,19 @@ class PDFDataExtractor:
                         page_progress = 20 + int((i / len(pdf.pages)) * 15)
                         progress_callback(page_progress, f"Extracting text from page {i+1}...")
                     
-                    # Method 1: Standard text extraction
+                    # Method 1: Standard text extraction (fastest)
                     text1 = page.extract_text()
                     if text1:
                         page_text += text1 + "\n"
                     
-                    # Method 2: Extract text with layout preservation
+                    # Skip slow methods if we got good text from method 1
+                    if len(page_text.strip()) > 100:
+                        # We have enough text, skip slower methods
+                        full_text += page_text
+                        pages_text[i + 1] = page_text
+                        continue
+                    
+                    # Method 2: Extract text with layout (only if needed)
                     try:
                         text2 = page.extract_text(layout=True)
                         if text2 and len(text2) > len(text1 or ""):
@@ -104,18 +111,8 @@ class PDFDataExtractor:
                     except:
                         pass
                     
-                    # Method 3: Extract tables if present
-                    try:
-                        tables = page.extract_tables()
-                        if tables:
-                            for table in tables:
-                                for row in table:
-                                    if row:
-                                        page_text += " | ".join([str(cell) if cell else "" for cell in row]) + "\n"
-                    except:
-                        pass
-                    
-                    # Method 4: Extract words and rebuild text
+                    # Skip table extraction for speed (uncommon in medical reports)
+                    # Method 4: Extract words only if we have no text
                     try:
                         if not page_text.strip():
                             words = page.extract_words()
@@ -132,11 +129,18 @@ class PDFDataExtractor:
                 
                 self.logger.info(f"Extracted text from {len(pdf.pages)} pages using standard methods")
                 
-                # Always try OCR to supplement text extraction - medical PDFs often need OCR
-                if progress_callback:
-                    progress_callback(35, "Enhancing extraction with OCR...")
-                    
-                ocr_text, ocr_pages = self.extract_text_with_ocr(pdf_path, progress_callback)
+                # Skip OCR if we have sufficient text (major speed improvement)
+                if len(full_text.strip()) > 500:
+                    self.logger.info(f"Sufficient text extracted ({len(full_text)} chars), skipping OCR for speed")
+                    if progress_callback:
+                        progress_callback(80, "Text extraction complete, skipping OCR...")
+                    ocr_text = ""
+                    ocr_pages = {}
+                else:
+                    # Use OCR only for scanned/image-based PDFs
+                    if progress_callback:
+                        progress_callback(35, "Minimal text found, using OCR...")
+                    ocr_text, ocr_pages = self.extract_text_with_ocr(pdf_path, progress_callback)
                 if ocr_text:
                     if len(ocr_text) > len(full_text) * 1.5:  # OCR is significantly better
                         self.logger.info(f"OCR provided better results, using OCR text ({len(ocr_text)} vs {len(full_text)} chars)")
@@ -681,10 +685,10 @@ class PDFDataExtractor:
             else:
                 images = convert_from_path(pdf_path, **conversion_kwargs)
             
-            # Limit pages if too many (process first 20 pages max for speed)
-            if len(images) > 20:
-                self.logger.info(f"Large PDF detected ({len(images)} pages). Processing first 20 pages for speed.")
-                images = images[:20]
+            # Limit pages if too many (process first 10 pages max for speed)
+            if len(images) > 10:
+                self.logger.info(f"Large PDF detected ({len(images)} pages). Processing first 10 pages for speed.")
+                images = images[:10]
             
             if progress_callback:
                 progress_callback(40, f"Processing {len(images)} pages with OCR...")
@@ -729,10 +733,10 @@ class PDFDataExtractor:
                         batch_size=1  # Process one at a time to avoid memory issues
                     )
                     
-                    # Combine OCR results into text with lower confidence threshold for speed
+                    # Combine OCR results into text with adjusted confidence threshold
                     page_text = ""
                     for (bbox, text, confidence) in results:
-                        if confidence > 0.2:  # Lower threshold for speed (was 0.3)
+                        if confidence > 0.3:  # Confidence threshold for quality
                             page_text += text + " "
                     
                     page_text = page_text.strip()
