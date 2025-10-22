@@ -16,20 +16,33 @@ class PDFDataExtractor:
     def __init__(self):
         self.setup_logging()
         self.ocr_reader = None
-        self.initialize_ocr()
+        self._ocr_initialized = False
         
     def setup_logging(self):
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
     
     def initialize_ocr(self):
-        """Initialize EasyOCR reader for image-based PDFs"""
+        """Initialize EasyOCR reader for image-based PDFs (lazy loading)"""
+        if self._ocr_initialized:
+            return
+        
         try:
-            self.ocr_reader = easyocr.Reader(['en'], gpu=False)
+            self.logger.info("Initializing OCR reader with memory optimizations...")
+            # Use memory-efficient settings
+            self.ocr_reader = easyocr.Reader(
+                ['en'], 
+                gpu=False, 
+                download_enabled=True,
+                model_storage_directory=os.path.expanduser('~/.EasyOCR/model'),
+                verbose=False
+            )
+            self._ocr_initialized = True
             self.logger.info("OCR reader initialized successfully")
         except Exception as e:
             self.logger.warning(f"Could not initialize OCR reader: {str(e)}")
             self.ocr_reader = None
+            self._ocr_initialized = True
     
     def extract_data_from_pdf(self, pdf_path: str, progress_callback=None) -> Dict[str, Any]:
         """
@@ -604,8 +617,12 @@ class PDFDataExtractor:
     
     def extract_text_with_ocr(self, pdf_path: str, progress_callback=None) -> tuple:
         """Extract text from PDF using OCR for scanned documents"""
+        # Initialize OCR only when needed
+        if not self._ocr_initialized:
+            self.initialize_ocr()
+        
         if not self.ocr_reader:
-            self.logger.warning("OCR reader not available")
+            self.logger.warning("OCR reader not available, skipping OCR extraction")
             return "", {}
 
         try:
@@ -628,11 +645,12 @@ class PDFDataExtractor:
                     poppler_path = path
                     break
             
-            # Use lower DPI for speed (200 instead of 300) - still good quality
+            # Use lower DPI to reduce memory usage
             conversion_kwargs = {
-                'dpi': 200,  # Lower DPI for faster processing
+                'dpi': 150,  # Lower DPI to save memory
                 'fmt': 'JPEG',  # JPEG is faster than PNG
-                'jpegopt': {'quality': 85, 'progressive': True, 'optimize': True}
+                'jpegopt': {'quality': 80, 'progressive': True, 'optimize': True},
+                'size': (1200, None)  # Limit image width to reduce memory
             }
             
             if poppler_path:
@@ -651,7 +669,7 @@ class PDFDataExtractor:
             full_ocr_text = ""
             ocr_pages = {}
             
-            # Process pages with optimized settings
+            # Process pages with optimized settings and memory management
             for i, image in enumerate(images):
                 page_num = i + 1
                 
@@ -662,15 +680,21 @@ class PDFDataExtractor:
                 
                 self.logger.info(f"Processing page {page_num} with OCR...")
                 
-                # Convert PIL image to numpy array for OpenCV
-                img_array = np.array(image)
-                
-                # Use fast preprocessing for speed
-                processed_img = self.preprocess_image_for_ocr(img_array, fast_mode=True)
-                
-                # Extract text using EasyOCR with speed optimizations
                 try:
-                    # Use optimized OCR settings for speed
+                    # Convert PIL image to numpy array for OpenCV
+                    img_array = np.array(image)
+                    
+                    # Resize if too large to save memory
+                    max_dim = 1500
+                    if max(img_array.shape[:2]) > max_dim:
+                        scale = max_dim / max(img_array.shape[:2])
+                        new_size = (int(img_array.shape[1] * scale), int(img_array.shape[0] * scale))
+                        img_array = cv2.resize(img_array, new_size, interpolation=cv2.INTER_AREA)
+                    
+                    # Use fast preprocessing for speed
+                    processed_img = self.preprocess_image_for_ocr(img_array, fast_mode=True)
+                    
+                    # Use optimized OCR settings for speed and memory
                     results = self.ocr_reader.readtext(
                         processed_img,
                         detail=1,  # Get bounding boxes and confidence
@@ -695,6 +719,11 @@ class PDFDataExtractor:
                         self.logger.info(f"Page {page_num}: Extracted {len(page_text)} characters with OCR")
                     else:
                         self.logger.info(f"Page {page_num}: No text extracted with OCR")
+                    
+                    # Clean up memory after each page
+                    del img_array, processed_img
+                    import gc
+                    gc.collect()
                         
                 except Exception as e:
                     self.logger.warning(f"OCR failed for page {page_num}: {str(e)}")
