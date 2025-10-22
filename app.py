@@ -116,7 +116,7 @@ def upload_file():
                 extracted_data = extractor.extract_data_from_pdf(upload_path, progress_update)
                 
                 update_progress(task_id, 80, "Creating Excel file...")
-                result_path = extractor.create_excel_from_data(extracted_data, output_path)
+                result_path = extractor.create_excel_from_data(extracted_data, output_path, upload_path)
                 
                 update_progress(task_id, 90, "Finalizing Excel file...")
                 

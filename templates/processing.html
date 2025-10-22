@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header" style="background-color: #D1001F; color: white;">
                     <h4 class="mb-0">
                         <i class="fas fa-cog fa-spin me-2"></i>
                         Processing Your PDF
@@ -15,14 +15,14 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <h5>File: <span class="text-primary">{{ filename }}</span></h5>
+                        <h5>File: <span style="color: #D1001F;">{{ filename }}</span></h5>
                         <p class="text-muted">Please wait while we extract data from your medical report...</p>
                     </div>
                     
                     <!-- Progress Bar -->
                     <div class="mb-4">
                         <div class="progress mb-2" style="height: 25px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="background-color: #D1001F;" 
                                  role="progressbar" 
                                  id="progress-bar"
                                  style="width: 0%">
@@ -38,7 +38,7 @@
                     <div class="row text-center">
                         <div class="col-3">
                             <div class="processing-step" id="step-1">
-                                <i class="fas fa-upload fa-2x text-success"></i>
+                                <i class="fas fa-upload fa-2x" style="color: #D1001F;"></i>
                                 <p class="mt-2 small">Upload</p>
                             </div>
                         </div>
@@ -64,18 +64,18 @@
                     
                     <!-- Loading Animation -->
                     <div class="text-center mt-4" id="loading-spinner">
-                        <div class="spinner-border text-primary" role="status">
+                        <div class="spinner-border" style="color: #D1001F;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
                     
                     <!-- Completion Section (hidden initially) -->
                     <div class="text-center mt-4 d-none" id="completion-section">
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                        <div class="alert" style="background-color: #E8F5E9; border-color: #D1001F; color: #000;">
+                            <i class="fas fa-check-circle fa-2x mb-3" style="color: #D1001F;"></i>
                             <h5>Processing Complete!</h5>
                             <p>Your medical data has been successfully extracted.</p>
-                            <a href="#" id="download-link" class="btn btn-success btn-lg">
+                            <a href="#" id="download-link" class="btn btn-lg" style="background-color: #D1001F; border-color: #D1001F; color: white;">
                                 <i class="fas fa-download me-2"></i>Download Excel File
                             </a>
                         </div>
@@ -153,7 +153,8 @@ function updateStepIndicators(progress) {
         const icon = element.querySelector('i');
         
         if (progress >= step.threshold) {
-            icon.className = icon.className.replace('text-muted', 'text-success');
+            icon.className = icon.className.replace('text-muted', '');
+            icon.style.color = '#D1001F';
         }
     });
 }

@@ -1,0 +1,2 @@
+Disease name,Panel,Tumour type,Biopsy location,IHC test name,Clone,Score,Expression cut-off criteria,Final interpretation,Reporting date,Subject ID,Year of birth,Gender
+Epithelial ovarian cancer,FOLR1 Ventana RxDx Assay,Ovary,Ovary,FOLR1,FOLR1-2.1,95% positive viable tumour cells,>=75% = positive,Positive,04/06/2023,A23-2034-0000014,,Female
